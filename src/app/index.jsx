@@ -1,8 +1,24 @@
 import { locations } from "@/app/data/id";
+import { Link, useFocusEffect } from "expo-router";
 import Card from "@/components/location-cards";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { useCallback, useState } from "react";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
+  const [savedLocations, setSavedLocations] = useState([...locations]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setSavedLocations([...locations]);
+    }, []),
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
@@ -10,12 +26,23 @@ export default function HomeScreen() {
         <Text style={styles.title}>MyPlaces</Text>
         <Text style={styles.subtitle}>Lugares para recordar</Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countText}>{locations.length} lugares</Text>
+          <Text style={styles.countText}>{savedLocations.length} lugares</Text>
         </View>
       </View>
       <Text style={styles.sectionTitle}>Explora tu próximo destino</Text>
+      <Link href="/afegir" asChild>
+        <Pressable
+          accessibilityRole="button"
+          style={({ pressed }) => [
+            styles.addButton,
+            pressed && styles.addButtonPressed,
+          ]}
+        >
+          <Text style={styles.addButtonText}>＋ Añadir un lugar</Text>
+        </Pressable>
+      </Link>
       <FlatList
-        data={locations}
+        data={savedLocations}
         keyExtractor={(location) => location.id}
         renderItem={({ item }) => <Card location={item} />}
         contentContainerStyle={styles.list}
@@ -73,6 +100,22 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: "#3D2B24",
     fontSize: 19,
+    fontWeight: "700",
+  },
+  addButton: {
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginBottom: 14,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: "#F1BF00",
+  },
+  addButtonPressed: {
+    opacity: 0.8,
+  },
+  addButtonText: {
+    color: "#6F1115",
+    fontSize: 16,
     fontWeight: "700",
   },
   list: {
