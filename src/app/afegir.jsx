@@ -1,4 +1,4 @@
-import { locations } from "@/app/data/id";
+import { addLocation } from "@/components/location-storage";
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import {
@@ -14,8 +14,9 @@ export default function AddLocationScreen() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const guardarLocalidad = () => {
+  const guardarLocalidad = async () => {
     const nombreNuevo = nombre.trim();
 
     if (!nombreNuevo) {
@@ -23,16 +24,20 @@ export default function AddLocationScreen() {
       return;
     }
 
-    const nextId = locations.length + 1;
-
-    locations.push({
-      id: String(nextId),
-      nombre: nombreNuevo,
-      categoria: "Personalizado",
-      descripcion: descripcion.trim(),
-    });
-
-    router.replace("/");
+    setSaving(true);
+    try {
+      await addLocation({
+        nombre: nombreNuevo,
+        categoria: "Personalizado",
+        descripcion: descripcion.trim(),
+      });
+      router.replace("/");
+    } catch (saveError) {
+      console.error("No se pudo guardar el lugar.", saveError);
+      setError("No se pudo guardar el lugar. Inténtalo de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -78,12 +83,15 @@ export default function AddLocationScreen() {
         <Pressable
           accessibilityRole="button"
           onPress={guardarLocalidad}
+          disabled={saving}
           style={({ pressed }) => [
             styles.saveButton,
-            pressed && styles.buttonPressed,
+            (pressed || saving) && styles.buttonPressed,
           ]}
         >
-          <Text style={styles.saveButtonText}>Guardar lugar</Text>
+          <Text style={styles.saveButtonText}>
+            {saving ? "Guardando..." : "Guardar lugar"}
+          </Text>
         </Pressable>
 
         <Link href="/" style={styles.backButton}>

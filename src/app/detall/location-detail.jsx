@@ -1,18 +1,53 @@
-import { locations } from "@/app/data/id";
 import { Link, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { getLocationList } from "@/components/location-storage";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function LocationDetail() {
   const { id } = useLocalSearchParams();
   const locationId = typeof id === "string" ? id : undefined;
-  const location = locations.find((item) => item.id === locationId);
+  const [location, setLocation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
-  if (!location) {
+  useEffect(() => {
+    let isActive = true;
+
+    getLocationList()
+      .then((locationList) => {
+        if (isActive) {
+          setLocation(
+            locationList.find((item) => item.id === locationId) ?? null,
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("No se pudo cargar el lugar.", error);
+        if (isActive) {
+          setLoadError("No se pudo cargar el lugar.");
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [locationId]);
+
+  if (loading || loadError || !location) {
     return (
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.errorCard}>
           <Text style={styles.eyebrow}>MYPLACES</Text>
-          <Text style={styles.title}>No se encuentra el lugar.</Text>
+          <Text style={styles.title}>
+            {loading
+              ? "Cargando lugar..."
+              : loadError || "No se encuentra el lugar."}
+          </Text>
           <Link href="/" style={styles.backButton}>
             Volver a la lista
           </Link>

@@ -1,21 +1,24 @@
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export default function Card({ location }) {
+export default function Card({ location, onDelete, isDeleting }) {
   return (
-    <Link
-      href={{
-        pathname: "/detall/location-detail",
-        params: { id: location.id },
-      }}
-      asChild
-    >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Ver ${location.nombre}`}
-        style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    <View style={styles.card}>
+      <Link
+        href={{
+          pathname: "/detall/location-detail",
+          params: { id: location.id },
+        }}
+        asChild
       >
-        <View style={styles.cardContent}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Ver ${location.nombre}`}
+          style={({ pressed }) => [
+            styles.cardContent,
+            pressed && styles.pressed,
+          ]}
+        >
           <View style={styles.numberBadge}>
             <Text style={styles.number}>{location.id.padStart(2, "0")}</Text>
           </View>
@@ -26,14 +29,31 @@ export default function Card({ location }) {
             <Text style={styles.name}>{location.nombre}</Text>
             <Text style={styles.action}>VER LUGAR  ›</Text>
           </View>
-        </View>
+        </Pressable>
+      </Link>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Eliminar ${location.nombre}`}
+        disabled={isDeleting}
+        onPress={() => onDelete(location.id)}
+        style={({ pressed }) => [
+          styles.deleteButton,
+          pressed && styles.pressed,
+          isDeleting && styles.deleteButtonDisabled,
+        ]}
+      >
+        <Text style={styles.deleteButtonText}>
+          {isDeleting ? "Eliminando..." : "Eliminar"}
+        </Text>
       </Pressable>
-    </Link>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
     padding: 16,
     borderRadius: 18,
@@ -50,6 +70,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   cardContent: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -94,5 +115,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1,
+  },
+  deleteButton: {
+    marginLeft: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    borderRadius: 10,
+    backgroundColor: "#FCE8E5",
+  },
+  deleteButtonDisabled: {
+    opacity: 0.6,
+  },
+  deleteButtonText: {
+    color: "#922027",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });

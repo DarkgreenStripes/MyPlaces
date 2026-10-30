@@ -1,7 +1,10 @@
-import { locations } from "@/app/data/id";
-import { Link, useFocusEffect } from "expo-router";
+import { Link } from "expo-router";
 import Card from "@/components/location-cards";
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  getLocationList,
+  removeLocation,
+} from "@/components/location-storage";
 import {
   FlatList,
   Pressable,
@@ -11,13 +14,41 @@ import {
 } from "react-native";
 
 export default function HomeScreen() {
-  const [savedLocations, setSavedLocations] = useState([...locations]);
+  const [savedLocations, setSavedLocations] = useState([]);
+  const [loadError, setLoadError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      setSavedLocations([...locations]);
-    }, []),
-  );
+  useEffect(() => {
+    async function loadLocations() {
+      try {
+        const locationList = await getLocationList();
+        setSavedLocations(locationList);
+        setLoadError("");
+      } catch (error) {
+        console.error("No se pudieron cargar los lugares.", error);
+        setLoadError("No se pudieron cargar los lugares.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadLocations();
+  }, []);
+
+  async function handleDeleteLocation(id) {
+    setIsDeleting(true);
+    try {
+      const locationList = await removeLocation(id);
+      setSavedLocations(locationList);
+      setLoadError("");
+    } catch (error) {
+      console.error("No se pudo eliminar el lugar.", error);
+      setLoadError("No se pudo eliminar el lugar.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -29,6 +60,11 @@ export default function HomeScreen() {
           <Text style={styles.countText}>{savedLocations.length} lugares</Text>
         </View>
       </View>
+      {loadError ? (
+        <Text accessibilityLiveRegion="polite" style={styles.loadError}>
+          {loadError}
+        </Text>
+      ) : null}
       <Text style={styles.sectionTitle}>Explora tu próximo destino</Text>
       <Link href="/afegir" asChild>
         <Pressable
@@ -44,7 +80,20 @@ export default function HomeScreen() {
       <FlatList
         data={savedLocations}
         keyExtractor={(location) => location.id}
-        renderItem={({ item }) => <Card location={item} />}
+        renderItem={({ item }) => (
+          <Card
+            location={item}
+            onDelete={handleDeleteLocation}
+            isDeleting={isDeleting}
+          />
+        )}
+        ListEmptyComponent={
+          !isLoading && !loadError ? (
+            <Text style={styles.emptyMessage}>
+              No tienes lugares guardados todavía.
+            </Text>
+          ) : null
+        }
         contentContainerStyle={styles.list}
       />
     </View>
@@ -94,6 +143,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
   },
+  loadError: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    color: "#AA151B",
+    fontSize: 14,
+    fontWeight: "600",
+  },
   sectionTitle: {
     marginHorizontal: 20,
     marginTop: 22,
@@ -121,5 +177,11 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+  },
+  emptyMessage: {
+    paddingVertical: 24,
+    color: "#6F5C4E",
+    fontSize: 15,
+    textAlign: "center",
   },
 });
