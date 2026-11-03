@@ -96,6 +96,60 @@ inicialmente esté vacía. MyPlaces lo resuelve con AsyncStorage:
 Para eliminar: botón de la tarjeta → `removeLocation()` → AsyncStorage →
 lista actualizada.
 
+## Apartado D: consulta HTTP/HTTPS
+
+La pantalla `src/app/descobreix.jsx` consulta una API pública por HTTPS y
+muestra ciudades según el texto introducido. Se abre desde el botón
+«Descobreix ciutats» de `src/app/index.jsx`; la ruta está configurada en
+`src/app/_layout.jsx`. El botón «Volver al inicio» permite regresar a la lista
+principal.
+
+### API y petición
+
+Se utiliza [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api),
+que no requiere clave. La petición se hace con `fetch()` a
+`https://geocoding-api.open-meteo.com/v1/search` y estos parámetros:
+
+- `name`: texto de búsqueda. La pantalla empieza con «Barcelona» y permite
+  cambiarlo en el campo «Nombre de la ciudad».
+- `count=10`: solicita como máximo diez coincidencias.
+- `language=ca`: pide los nombres en catalán cuando están disponibles.
+- `format=json`: solicita la respuesta en formato JSON.
+
+El botón «Buscar» y la tecla de búsqueda del teclado envían la consulta. Antes
+de construir la URL se eliminan espacios al principio y al final del texto, y
+`encodeURIComponent()` codifica el término para que pueda viajar correctamente
+como parámetro de la URL. Cada nuevo término inicia otra petición.
+
+### Resultados y estados de pantalla
+
+La respuesta JSON contiene `results`. Si es una lista, sus elementos se
+muestran en un `FlatList`, que representa cada ciudad con su nombre, región y
+país. El identificador de Open-Meteo se usa como clave de cada fila.
+
+La pantalla presenta estados alternativos para que la persona sepa qué ocurre:
+
+- **Carga:** mientras espera la respuesta, muestra un indicador animado y el
+  texto «Cargando...».
+- **Error:** si la petición falla, devuelve un estado HTTP no satisfactorio o
+  la respuesta no tiene el formato esperado, muestra un mensaje de error. El
+  detalle técnico también se escribe en la consola mediante `console.error`.
+  El botón «Reintentar» vuelve a enviar la petición.
+- **Lista vacía:** si la API responde correctamente pero no encuentra
+  coincidencias (la lista `results` está vacía o no viene en la respuesta),
+  muestra «No se han encontrado ciudades».
+- **Resultados:** si hay coincidencias, presenta la lista desplazable de
+  ciudades.
+
+Al salir de la pantalla se invalida la petición pendiente para evitar que una
+respuesta tardía intente actualizar el estado de una pantalla que ya no está
+montada.
+
+### Recorrido de la consulta
+
+`index.jsx` → `/descobreix` → escribir una ciudad → `fetch()` a Open-Meteo →
+carga, error, lista vacía o resultados.
+
 ## Ejecutar la aplicación
 
 Instala las dependencias con `npm install` y luego inicia Expo:

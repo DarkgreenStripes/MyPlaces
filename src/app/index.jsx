@@ -1,17 +1,8 @@
-import { Link } from "expo-router";
 import Card from "@/components/location-cards";
+import { getLocationList, removeLocation } from "@/components/location-storage";
+import { Link } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  getLocationList,
-  removeLocation,
-} from "@/components/location-storage";
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const [savedLocations, setSavedLocations] = useState([]);
@@ -66,6 +57,12 @@ export default function HomeScreen() {
         </Text>
       ) : null}
       <Text style={styles.sectionTitle}>Explora tu próximo destino</Text>
+      <Link href="/descobreix" asChild>
+        <Pressable accessibilityRole="button" style={styles.discoverButton}>
+          <Text style={styles.discoverButtonText}>Descubre ciudades →</Text>
+        </Pressable>
+      </Link>
+      <Text style={styles.sectionTitle}>Tú lista</Text>
       <Link href="/afegir" asChild>
         <Pressable
           accessibilityRole="button"
@@ -171,6 +168,19 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: "#6F1115",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  discoverButton: {
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginBottom: 14,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: "#AA151B",
+  },
+  discoverButtonText: {
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
   },
