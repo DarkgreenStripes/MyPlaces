@@ -150,6 +150,52 @@ montada.
 `index.jsx` → `/descobreix` → escribir una ciudad → `fetch()` a Open-Meteo →
 carga, error, lista vacía o resultados.
 
+## Apartado E: ubicación y permisos
+
+### Permisos: pedir solo lo necesario
+
+El usuario controla los permisos de su dispositivo. MyPlaces solo necesita
+acceder a la ubicación cuando la persona lo solicita, así que no la pide al
+abrir la app ni solicita acceso en segundo plano:
+
+- Al pulsar «Utilitza la meva ubicació», `src/app/index.jsx` solicita el
+  permiso de primer plano con `requestForegroundPermissionsAsync()` de
+  `expo-location`.
+- La app comprueba que `status` sea `"granted"` antes de acceder a la posición.
+- Si el permiso se deniega, muestra un mensaje y el resto de la app sigue
+  disponible.
+- La solicitud explica que la ubicación se usa para mostrar las coordenadas.
+  El texto del permiso en iOS está configurado en el plugin `expo-location` de
+  `app.json`.
+
+### GPS con Expo Location
+
+Con el permiso concedido, la app obtiene la ubicación actual y muestra la
+latitud y la longitud con seis decimales:
+
+```js
+const { status } = await Location.requestForegroundPermissionsAsync();
+
+if (status !== "granted") {
+  setLocationError("Cal donar permís d'ubicació per mostrar les coordenades.");
+  return;
+}
+
+const pos = await Location.getCurrentPositionAsync({
+  accuracy: Location.Accuracy.Balanced,
+});
+
+setCoordinates({
+  latitude: pos.coords.latitude,
+  longitude: pos.coords.longitude,
+});
+```
+
+La dependencia `expo-location` se instala con `npx expo install expo-location`.
+La ubicación se debe probar en un dispositivo o entorno que proporcione GPS;
+los resultados dependen de las capacidades del dispositivo y de que los
+servicios de ubicación estén disponibles.
+
 ## Ejecutar la aplicación
 
 Instala las dependencias con `npm install` y luego inicia Expo:
