@@ -1,4 +1,5 @@
 import { Link } from "expo-router";
+import { useNetInfo } from "@react-native-community/netinfo";
 import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -11,8 +12,18 @@ import {
 } from "react-native";
 
 const API_URL = "https://geocoding-api.open-meteo.com/v1/search";
+const NETWORK_TYPES = {
+  wifi: "Wi-Fi",
+  cellular: "Datos móviles",
+  ethernet: "Ethernet",
+  none: "Sin conexión",
+};
 
 export default function DiscoverScreen() {
+  const { type, isConnected, isInternetReachable } = useNetInfo();
+  const isOffline =
+    isConnected === false || isInternetReachable === false;
+  const isCheckingConnection = isConnected === null;
   const [query, setQuery] = useState("Barcelona");
   const [searchTerm, setSearchTerm] = useState("Barcelona");
   const [requestId, setRequestId] = useState(0);
@@ -22,10 +33,14 @@ export default function DiscoverScreen() {
   useEffect(() => {
     let active = true;
 
+    if (isConnected !== true || isOffline) return;
+
+    const controller = new AbortController();
+
     async function loadPlaces() {
       try {
         const url = `${API_URL}?name=${encodeURIComponent(searchTerm)}&count=10&language=ca&format=json`;
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: controller.signal });
 
         if (!response.ok) {
           throw new Error(`Error HTTP ${response.status}`);
@@ -42,8 +57,10 @@ export default function DiscoverScreen() {
           setStatus("success");
         }
       } catch (requestError) {
-        console.error("No s'han pogut carregar les ciutats.", requestError);
-        if (active) setStatus("error");
+        if (active) {
+          console.error("No s'han pogut carregar les ciutats.", requestError);
+          setStatus("error");
+        }
       }
     }
 
@@ -51,8 +68,9 @@ export default function DiscoverScreen() {
 
     return () => {
       active = false;
+      controller.abort();
     };
-  }, [searchTerm, requestId]);
+  }, [searchTerm, requestId, isConnected, isOffline]);
 
   function handleSearch() {
     const term = query.trim();
@@ -67,6 +85,12 @@ export default function DiscoverScreen() {
     setRequestId((id) => id + 1);
   }
 
+  const connectionLabel = isCheckingConnection
+    ? "Comprobando conexión..."
+    : isOffline
+      ? "Sin conexión a Internet"
+      : "Conectado";
+
   return (
     <View style={styles.container}>
       <Link href="/" asChild>
@@ -75,6 +99,21 @@ export default function DiscoverScreen() {
         </Pressable>
       </Link>
       <Text style={styles.title}>Descubre ciudades</Text>
+      <View
+        accessibilityLiveRegion="polite"
+        style={[
+          styles.connectionStatus,
+          isOffline
+            ? styles.connectionOffline
+            : isCheckingConnection
+              ? styles.connectionUnknown
+              : styles.connectionOnline,
+        ]}
+      >
+        <Text style={styles.connectionText}>
+          {connectionLabel} · {NETWORK_TYPES[type] || "Tipo desconocido"}
+        </Text>
+      </View>
       <TextInput
         accessibilityLabel="Nombre de la ciudad"
         value={query}
@@ -95,7 +134,16 @@ export default function DiscoverScreen() {
         <Text style={styles.searchButtonText}>Buscar</Text>
       </Pressable>
 
-      {status === "loading" ? (
+      {isCheckingConnection ? (
+        <View style={styles.status}>
+          <ActivityIndicator color="#AA151B" />
+          <Text>Comprobando conexión...</Text>
+        </View>
+      ) : isOffline ? (
+        <Text style={styles.statusText}>
+          No hay conexión a Internet. La búsqueda se reanudará al recuperar la conexión.
+        </Text>
+      ) : status === "loading" ? (
         <View style={styles.status}>
           <ActivityIndicator color="#AA151B" />
           <Text>Cargando...</Text>
@@ -155,6 +203,23 @@ const styles = StyleSheet.create({
     color: "#3D2B24",
     fontSize: 24,
     fontWeight: "700",
+  },
+  connectionStatus: {
+    marginBottom: 12,
+    padding: 10,
+    borderRadius: 8,
+  },
+  connectionOnline: {
+    backgroundColor: "#E6F4EA",
+  },
+  connectionOffline: {
+    backgroundColor: "#FCE8E6",
+  },
+  connectionUnknown: {
+    backgroundColor: "#FFF4CC",
+  },
+  connectionText: {
+    color: "#3D2B24",
   },
   input: {
     marginBottom: 10,

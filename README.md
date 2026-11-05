@@ -196,6 +196,44 @@ La ubicación se debe probar en un dispositivo o entorno que proporcione GPS;
 los resultados dependen de las capacidades del dispositivo y de que los
 servicios de ubicación estén disponibles.
 
+## Apartado F: conectividad
+
+### Estado de conexión con NetInfo
+
+La pantalla `src/app/descobreix.jsx` muestra si el dispositivo está conectado
+y el tipo de red disponible, como Wi-Fi o datos móviles. El estado se obtiene
+con `useNetInfo()` de `@react-native-community/netinfo`:
+
+```js
+const { type, isConnected, isInternetReachable } = useNetInfo();
+
+const isOffline =
+  isConnected === false || isInternetReachable === false;
+```
+
+`isConnected` indica si hay una conexión de red y `isInternetReachable` si se
+puede acceder a Internet. El valor `type` se convierte en un texto legible con
+el objeto `NETWORK_TYPES` (por ejemplo, `wifi` se muestra como «Wi-Fi»).
+
+### Evitar consultas cuando no hay Internet
+
+La comprobación se hace en «Descubre» porque esa pantalla busca ciudades en la
+API de Open-Meteo. La pantalla principal (`src/app/index.jsx`) trabaja con
+lugares guardados localmente y la ubicación del dispositivo, así que no
+necesita Internet para esas funciones. Por tanto, el indicador se muestra
+junto a la búsqueda que depende de la conexión, no en el inicio.
+
+- Si NetInfo todavía está comprobando la conexión, la pantalla espera antes de
+  iniciar la búsqueda.
+- Si no hay conexión o Internet no es accesible, muestra un aviso y no envía la
+  consulta.
+- Si se pierde la conexión mientras se carga una búsqueda, se cancela esa
+  petición. Cuando vuelve, la búsqueda se inicia de nuevo.
+
+La dependencia se instala con `npx expo install
+@react-native-community/netinfo`, que selecciona una versión compatible con el
+SDK de Expo del proyecto.
+
 ## Ejecutar la aplicación
 
 Instala las dependencias con `npm install` y luego inicia Expo:
