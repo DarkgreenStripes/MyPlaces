@@ -3,11 +3,41 @@
 Aplicación móvil hecha con React Native, Expo y JavaScript para guardar y
 consultar lugares de interés.
 
+## Estructura
+
+```text
+src/
+├── app/
+│   ├── _layout.jsx
+│   ├── index.jsx
+│   ├── afegir.jsx
+│   ├── descobreix.jsx
+│   ├── data/
+│   │   └── id.js
+│   └── detall/
+│       └── location-detail.jsx
+├── components/
+│   ├── location-cards.jsx
+│   └── location-storage.jsx
+├── constants/
+│   └── theme.ts
+├── hooks/
+│   ├── use-color-scheme.ts
+│   ├── use-color-scheme.web.ts
+│   └── use-theme.ts
+└── global.css
+```
+
+Las pantallas y la lógica funcional de los apartados de esta entrega están en
+JavaScript (`.js`/`.jsx`). El template de Expo conserva utilidades auxiliares
+de tema en TypeScript (`.ts`); `src/hooks/use-color-scheme.web.ts` forma parte
+de ese template y no se ha modificado.
+
 ## Apartado A: navegación y componentes
 
-El apartado A pide una pantalla principal con una lista de lugares, una pantalla
-de detalle, navegación entre ambas, un identificador para cada lugar y al menos
-un componente reutilizable. MyPlaces lo resuelve así:
+La pantalla principal muestra los lugares guardados. Al tocar una tarjeta, se
+abre el detalle correspondiente. Cada lugar tiene un identificador propio y
+las tarjetas se dibujan con un componente reutilizable:
 
 - **Lista principal:** `src/app/index.jsx` carga los lugares guardados con
   `getLocationList()` y los muestra con `FlatList`. Cada elemento usa su `id`
@@ -30,11 +60,23 @@ un componente reutilizable. MyPlaces lo resuelve así:
 almacenamiento local → `index.jsx` → tarjeta reutilizable → ruta de detalle con
 el `id` → consulta del lugar guardado → pantalla de detalle.
 
+#### Capturas: lista y detalle
+
+<details>
+<summary>Pantalla principal — lista con PruebaG (Android, G2: persistencia)</summary>
+<img src="./assets/test-evidence/G2-reinicio.png" alt="Pantalla principal de MyPlaces en Android con PruebaG guardado tras reiniciar Expo Go" width="360">
+</details>
+
+<details>
+<summary>Detalle de PruebaG (Android, G1)</summary>
+<img src="./assets/test-evidence/G1-creacion.png" alt="Detalle del lugar PruebaG creado en Android" width="360">
+</details>
+
 ## Apartado B: formulario y validación
 
-El apartado B pide una pantalla para añadir un lugar con nombre y descripción,
-impedir que se guarde con el nombre vacío, informar del error y permitir volver
-a la lista. MyPlaces lo resuelve así:
+El formulario permite añadir un lugar con nombre y descripción. El nombre es
+obligatorio: si se deja vacío, aparece un mensaje de error y no se guarda el
+lugar.
 
 - **Acceso al formulario:** el botón «Añadir un lugar» de
   `src/app/index.jsx` abre la ruta interna `/afegir`.
@@ -61,11 +103,18 @@ a la lista. MyPlaces lo resuelve así:
 `index.jsx` → formulario `/afegir` → validación del nombre con `trim()` →
 `addLocation()` → almacenamiento local → lista y detalle actualizados.
 
+#### Captura: formulario
+
+<details>
+<summary>Formulario «Añadir lugar» (Expo Web)</summary>
+<img src="./assets/test-evidence/pantalla-formulario-web.png" alt="Pantalla del formulario para añadir un lugar en Expo Web" width="560">
+</details>
+
 ## Apartado C: persistencia local
 
-El apartado C pide guardar los lugares en el dispositivo, recuperarlos al
-reiniciar la aplicación, permitir eliminarlos y contemplar que la lista
-inicialmente esté vacía. MyPlaces lo resuelve con AsyncStorage:
+Los lugares se guardan en el dispositivo con AsyncStorage. Al volver a abrir la
+app, se recupera la lista guardada; también se pueden eliminar lugares. Si aún
+no se ha añadido ninguno, la lista aparece vacía.
 
 - **Almacenamiento:** `src/components/location-storage.jsx` centraliza las
   operaciones de lectura, alta y eliminación. La lista se guarda como JSON en
@@ -96,13 +145,21 @@ inicialmente esté vacía. MyPlaces lo resuelve con AsyncStorage:
 Para eliminar: botón de la tarjeta → `removeLocation()` → AsyncStorage →
 lista actualizada.
 
+#### Captura: lista vacía
+
+<details>
+<summary>Lista sin lugares y contador a cero (Android, G3)</summary>
+<img src="./assets/test-evidence/G3-ausencia-de-datos.png" alt="Lista vacía y contador a cero en Android" width="360">
+</details>
+
+La captura de la lista con el lugar conservado tras reiniciar Expo Go (G2)
+está en el apartado A, junto a la pantalla principal.
+
 ## Apartado D: consulta HTTP/HTTPS
 
-La pantalla `src/app/descobreix.jsx` consulta una API pública por HTTPS y
-muestra ciudades según el texto introducido. Se abre desde el botón
-«Descubre ciudades» de `src/app/index.jsx`; la ruta interna está configurada en
-`src/app/_layout.jsx`. El botón «Volver al inicio» permite regresar a la lista
-principal.
+En «Descubre ciudades» se buscan lugares con la API pública de Open-Meteo. Se
+accede desde el inicio y se puede volver a la lista principal con «Volver al
+inicio».
 
 ### API y petición
 
@@ -127,7 +184,7 @@ La respuesta JSON contiene `results`. Si es una lista, sus elementos se
 muestran en un `FlatList`, que representa cada ciudad con su nombre, región y
 país. El identificador de Open-Meteo se usa como clave de cada fila.
 
-La pantalla presenta estados alternativos para que la persona sepa qué ocurre:
+La pantalla informa del estado de la búsqueda:
 
 - **Carga:** mientras espera la respuesta, muestra un indicador animado y el
   texto «Cargando...».
@@ -150,13 +207,19 @@ montada.
 `index.jsx` → `/descobreix` → escribir una ciudad → `fetch()` a Open-Meteo →
 carga, error, lista vacía o resultados.
 
+#### Captura: resultados de la API
+
+<details>
+<summary>Pantalla «Descubre ciudades» — resultados de Barcelona (Expo Web)</summary>
+<img src="./assets/test-evidence/pantalla-descubre-resultados-web.png" alt="Pantalla Descubre ciudades con resultados de Barcelona en Expo Web" width="560">
+</details>
+
 ## Apartado E: ubicación y permisos
 
 ### Permisos: pedir solo lo necesario
 
-El usuario controla los permisos de su dispositivo. MyPlaces solo necesita
-acceder a la ubicación cuando la persona lo solicita, así que no la pide al
-abrir la app ni solicita acceso en segundo plano:
+La app solo solicita la ubicación cuando se pulsa «Utiliza mi ubicación». No
+pide permiso al abrirse ni accede a la ubicación en segundo plano:
 
 - Al pulsar «Utiliza mi ubicación», `src/app/index.jsx` solicita el
   permiso de primer plano con `requestForegroundPermissionsAsync()` de
@@ -177,7 +240,9 @@ latitud y la longitud con seis decimales:
 const { status } = await Location.requestForegroundPermissionsAsync();
 
 if (status !== "granted") {
-  setLocationError("Debes conceder permiso de ubicación para mostrar las coordenadas.");
+  setLocationError(
+    "Debes conceder permiso de ubicación para mostrar las coordenadas.",
+  );
   return;
 }
 
@@ -196,19 +261,25 @@ La ubicación se debe probar en un dispositivo o entorno que proporcione GPS;
 los resultados dependen de las capacidades del dispositivo y de que los
 servicios de ubicación estén disponibles.
 
+#### Captura: permiso denegado
+
+<details>
+<summary>Aviso al denegar el permiso de ubicación (Android, G5)</summary>
+<img src="./assets/test-evidence/G5-permiso-denegado.png" alt="Aviso después de denegar el permiso de ubicación en Android" width="360">
+</details>
+
 ## Apartado F: conectividad
 
 ### Estado de conexión con NetInfo
 
-La pantalla `src/app/descobreix.jsx` muestra si el dispositivo está conectado
-y el tipo de red disponible, como Wi-Fi o datos móviles. El estado se obtiene
-con `useNetInfo()` de `@react-native-community/netinfo`:
+En «Descubre ciudades» se muestra el estado de conexión y, cuando está
+disponible, el tipo de red. Para obtenerlo se usa `useNetInfo()` de
+`@react-native-community/netinfo`:
 
 ```js
 const { type, isConnected, isInternetReachable } = useNetInfo();
 
-const isOffline =
-  isConnected === false || isInternetReachable === false;
+const isOffline = isConnected === false || isInternetReachable === false;
 ```
 
 `isConnected` indica si hay una conexión de red y `isInternetReachable` si se
@@ -217,11 +288,9 @@ el objeto `NETWORK_TYPES` (por ejemplo, `wifi` se muestra como «Wi-Fi»).
 
 ### Evitar consultas cuando no hay Internet
 
-La comprobación se hace en «Descubre» porque esa pantalla busca ciudades en la
-API de Open-Meteo. La pantalla principal (`src/app/index.jsx`) trabaja con
-lugares guardados localmente y la ubicación del dispositivo, así que no
-necesita Internet para esas funciones. Por tanto, el indicador se muestra
-junto a la búsqueda que depende de la conexión, no en el inicio.
+La búsqueda de ciudades necesita Internet; la lista guardada y la función de
+ubicación no dependen de esa consulta. Por eso el estado de red aparece en
+«Descubre», junto a la búsqueda.
 
 - Si NetInfo todavía está comprobando la conexión, la pantalla espera antes de
   iniciar la búsqueda.
@@ -234,9 +303,16 @@ La dependencia se instala con `npx expo install
 @react-native-community/netinfo`, que selecciona una versión compatible con el
 SDK de Expo del proyecto.
 
+#### Captura: error de red
+
+<details>
+<summary>Aviso de desconexión en «Descubre ciudades» (Android, G4)</summary>
+<img src="./assets/test-evidence/G4-error-de-red.png" alt="Aviso de desconexión en la pantalla Descubre ciudades de Android" width="360">
+</details>
+
 ## Ejecutar la aplicación
 
-Instala las dependencias con `npm install` y luego inicia Expo:
+Instala las dependencias e inicia Expo:
 
 ```bash
 npx expo start
@@ -246,9 +322,8 @@ npx expo start
 
 ### Preparar el entorno
 
-Requisitos: Node.js, npm y las dependencias del proyecto. Para probar la
-ubicación se necesita un dispositivo o emulador Android/iOS con Expo Go y los
-servicios de ubicación activados.
+Hace falta Node.js, npm y un dispositivo o emulador con Expo Go. Para probar
+la ubicación, activa los servicios de ubicación del dispositivo.
 
 ```bash
 npm install
@@ -268,35 +343,25 @@ Antes de empezar, elimina los lugares guardados desde la propia aplicación
 guardados todavía». Así se prepara un estado inicial vacío sin borrar datos
 de otros proyectos de Expo Go.
 
-### Casos de prueba manuales
+### Pruebas en Android
 
-| ID | Caso | Pasos reproducibles | Resultado esperado |
-|---|---|---|---|
-| G1 | Creación | Desde la lista vacía, pulsa «Añadir un lugar», introduce `PruebaG` y `Lugar de Android`, pulsa «Guardar lugar» y abre la tarjeta creada. | La lista muestra el lugar; el detalle conserva el nombre, la categoría «Personalizado» y la descripción. |
-| G2 | Reinicio y persistencia | Después de G1, cierra completamente Expo Go desde el selector de aplicaciones y vuelve a abrir el mismo proyecto. | `PruebaG` sigue en la lista y se puede volver a abrir su detalle. No borres los datos entre ambos pasos. |
-| G3 | Ausencia de datos | En la lista, elimina todos los lugares guardados. Vuelve a la pantalla principal si es necesario. | Aparecen «No tienes lugares guardados todavía» y el contador `0 lugares`; no se muestran datos de ejemplo. |
-| G4 | Error de red | Abre «Descubre ciudades» y activa el modo avión o desactiva Wi-Fi y los datos móviles desde los ajustes del dispositivo. | El estado de red indica que no hay Internet y la pantalla muestra el aviso de desconexión en lugar de los resultados. Al recuperar la conexión, se reanuda la búsqueda. |
-| G5 | Permiso de ubicación denegado | Deniega el permiso cuando el sistema lo solicite al pulsar «Utiliza mi ubicación». Si ya lo habías concedido, revócalo en los ajustes del sistema para Expo Go y repite la acción. | Aparece «Debes conceder permiso de ubicación para mostrar las coordenadas.»; no se muestran coordenadas y el resto de la aplicación sigue disponible. |
+Las pruebas se realizaron el 6 de noviembre de 2026 con Expo Go en un emulador
+Android `sdk_gphone16_x86_64` (Android 17, API 37). La tabla reúne los pasos
+para repetir cada caso, el resultado esperado y el resultado observado. Para
+G2 se cerró Expo Go con `adb shell am force-stop host.exp.exponent`; para G4 se
+desactivaron y reactivaron Wi-Fi y los datos móviles mediante ADB.
 
-### Registro de ejecución
+| ID | Caso | Pasos reproducibles | Resultado esperado | Resultado obtenido | Observaciones |
+|---|---|---|---|---|---|
+| G1 | Creación | Desde la lista vacía, pulsa «Añadir un lugar», introduce `PruebaG` y `Lugar de Android`, pulsa «Guardar lugar» y abre la tarjeta creada. | La lista muestra el lugar; el detalle conserva el nombre, la categoría «Personalizado» y la descripción. | Aprobado: se creó `PruebaG` con `Lugar de Android`; la lista y el detalle muestran los datos esperados. | Ejecutado en emulador Android. |
+| G2 | Reinicio y persistencia | Después de G1, cierra completamente Expo Go desde el selector de aplicaciones y vuelve a abrir el mismo proyecto. | `PruebaG` sigue en la lista y se puede volver a abrir su detalle. | Aprobado: el lugar siguió en la lista después de reiniciar Expo Go. | Se usó `adb shell am force-stop host.exp.exponent`; no se borraron los datos. |
+| G3 | Ausencia de datos | En la lista, elimina todos los lugares guardados. Vuelve a la pantalla principal si es necesario. | Aparecen «No tienes lugares guardados todavía» y el contador `0 lugares`; no se muestran datos de ejemplo. | Aprobado: al eliminar `PruebaG` apareció el mensaje de lista vacía y el contador `0 lugares`. | Ejecutado en emulador Android. |
+| G4 | Error de red | Abre «Descubre ciudades» y desactiva Wi-Fi y los datos móviles desde los ajustes del dispositivo. | El estado de red indica que no hay Internet y la pantalla muestra el aviso de desconexión. Al recuperar la conexión, se reanuda la búsqueda. | Aprobado: sin red se mostró `Sin conexión a Internet`; al reactivarla, volvió `Conectado · Wi-Fi` y cargaron resultados de Barcelona. | Se usaron `adb shell svc wifi disable` y `adb shell svc data disable`. |
+| G5 | Permiso de ubicación denegado | Deniega el permiso cuando el sistema lo solicite al pulsar «Utiliza mi ubicación». Si ya lo habías concedido, revócalo en los ajustes del sistema para Expo Go y repite la acción. | Aparece «Debes conceder permiso de ubicación para mostrar las coordenadas.»; no se muestran coordenadas y el resto de la aplicación sigue disponible. | Aprobado: apareció el aviso de permiso denegado y no se mostraron coordenadas. | Permisos de Expo Go revocados; se eligió «No permitir» en Android. |
 
-Fecha del registro: 2026-11-06. Proyecto: Expo SDK 58.0.19, probado con Expo Go
-en un emulador Android `sdk_gphone16_x86_64` (Android 17, API 37). Servidor
-local iniciado con `npx expo start --android --host localhost --port 8082` y
-conexión ADB para el puerto 8082. Resultados observados:
+#### Evidencias de las cinco pruebas
 
-| ID | Resultado en emulador/dispositivo | Evidencia |
-|---|---|---|
-| G1 | Aprobado | Se creó `PruebaG` con la descripción `Lugar de Android`; la lista muestra un lugar y el detalle conserva el nombre, la categoría y la descripción. |
-| G2 | Aprobado | Tras ejecutar `adb shell am force-stop host.exp.exponent` y volver a abrir el proyecto, `PruebaG` sigue en la lista. |
-| G3 | Aprobado | Al eliminar `PruebaG`, el contador muestra `0 lugares` y aparece el mensaje de lista vacía. |
-| G4 | Aprobado | Se desactivaron Wi-Fi y los datos con `adb shell svc wifi disable` y `adb shell svc data disable`: la aplicación muestra `Sin conexión a Internet` y el aviso correspondiente. Al reactivarlos, vuelve a `Conectado · Wi-Fi` y carga resultados de Barcelona. |
-| G5 | Aprobado | Se revocaron los permisos de ubicación de Expo Go y se seleccionó «No permitir» en el diálogo de Android: aparece el aviso de permiso denegado y no se muestran coordenadas. |
-
-#### Capturas de las pruebas
-
-Las capturas se tomaron en el emulador Android durante la ejecución descrita
-arriba. Abre cada sección para ver la imagen.
+Guardé una captura de cada caso durante las pruebas en Android.
 
 <details>
 <summary>G1 — Creación y detalle del lugar</summary>
@@ -304,12 +369,12 @@ arriba. Abre cada sección para ver la imagen.
 </details>
 
 <details>
-<summary>G2 — El lugar se conserva después de reiniciar Expo Go</summary>
+<summary>G2 — Persistencia después de reiniciar Expo Go</summary>
 <img src="./assets/test-evidence/G2-reinicio.png" alt="G2: lista de Android después de reiniciar Expo Go, con PruebaG guardado" width="360">
 </details>
 
 <details>
-<summary>G3 — Ausencia de datos</summary>
+<summary>G3 — Lista vacía</summary>
 <img src="./assets/test-evidence/G3-ausencia-de-datos.png" alt="G3: lista vacía y contador a cero en Android" width="360">
 </details>
 
@@ -328,20 +393,11 @@ dispositivo. G3 deja la lista vacía para iniciar una nueva ronda. En esta
 ejecución, los permisos de ubicación se restauraron a su estado inicial
 después de probar la denegación.
 
-### Comprobación complementaria en la web
+### Limitaciones del entorno de prueba
 
-El 2026-11-06 se inició Expo Web (`npx expo start --web --port 8081`) y se
-comprobaron estos flujos en el navegador. No sustituyen una prueba nativa:
-
-| Caso | Resultado web | Alcance y limitaciones |
-|---|---|---|
-| G1 | Aprobado | Creación de `PruebaG`, tarjeta en la lista y detalle con descripción. |
-| G2 | Aprobado parcialmente | El lugar sigue disponible tras recargar la página; no se cerró ni se volvió a abrir Expo Go. |
-| G3 | Aprobado | Al eliminar el lugar, aparece el estado vacío y el contador `0 lugares`. |
-| G4 | Aprobado parcialmente | Se abortó la petición a Open-Meteo en el navegador y se comprobaron el aviso de error y el botón «Reintentar»; no se simuló el modo avión ni NetInfo nativo. |
-| G5 | No ejecutado | El navegador de esta sesión no permite configurar el permiso de ubicación (`Browser.grantPermissions` no está disponible); hay que repetir la prueba en Android/iOS. |
-
-La comprobación de tipos (`npx tsc --noEmit`) finaliza correctamente.
-`npx expo lint` sigue fallando por un diagnóstico preexistente en
-`src/hooks/use-color-scheme.web.ts:11` (`react-hooks/set-state-in-effect`),
-ajeno a este cambio.
+- Las pruebas nativas se realizaron en el emulador Android
+  `sdk_gphone16_x86_64`, Android 17 (API 37); la ubicación depende del GPS
+  simulado del emulador.
+- La comprobación web es complementaria y no sustituye la prueba nativa. En
+  web, G2 y G4 solo se comprobaron parcialmente y G5 no se pudo ejecutar.
+- En esta ejecución no se generó un APK ni se probó con un sensor físico.
