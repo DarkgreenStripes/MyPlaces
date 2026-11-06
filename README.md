@@ -241,3 +241,106 @@ Instala las dependencias con `npm install` y luego inicia Expo:
 ```bash
 npx expo start
 ```
+
+## Apartat G: proves i documentació reproduïbles
+
+### Preparar l'entorn
+
+Requisits: Node.js, npm i les dependències del projecte. Per provar la ubicació
+cal un dispositiu o emulador Android/iOS amb Expo Go i els serveis d'ubicació
+activats.
+
+```bash
+npm install
+npx expo start
+```
+
+Per a Android, inicia un AVD des d'Android Studio abans d'executar
+`npx expo start --android`. Comprova que apareix a `adb devices -l`. En un
+dispositiu físic, connecta'l a la mateixa xarxa Wi-Fi que l'ordinador, obre
+Expo Go i escaneja el codi QR que mostra Expo. Per a iOS, obre el projecte amb
+Expo Go des del codi QR; cal un iPhone amb Expo Go per comprovar els permisos
+natius d'iOS. Mantén el servidor d'Expo en execució durant la prova.
+
+Abans de començar, elimina els llocs guardats des de la mateixa app (botó
+«Eliminar» de cada targeta) fins que aparegui «No tienes lugares guardados
+todavía». Això prepara un estat inicial buit sense esborrar dades d'altres
+projectes d'Expo Go.
+
+### Casos de prova manuals
+
+| ID | Cas | Passos reproduïbles | Resultat esperat |
+|---|---|---|---|
+| G1 | Creació | Des de la llista buida, prem «Añadir un lugar», introdueix `ProvaG` i `Lloc dAndroid`, prem «Guardar lugar» i obre la targeta creada. | La llista mostra el lloc; el detall conserva el nom, la categoria «Personalizado» i la descripció. |
+| G2 | Reinici i persistència | Després de G1, tanca completament Expo Go des del selector d'aplicacions i torna a obrir el mateix projecte. | `Prova G` continua a la llista i el seu detall es pot tornar a obrir. No esborris les dades entre els dos passos. |
+| G3 | Absència de dades | A la llista, elimina tots els llocs desats. Torna a la pantalla principal si cal. | Es mostra «No tienes lugares guardados todavía» i el comptador indica `0 lugares`; no apareixen dades d'exemple. |
+| G4 | Error de xarxa | Obre «Descubre ciudades» i activa el mode avió o desactiva Wi-Fi i dades mòbils des dels ajustos del dispositiu. | L'estat de xarxa indica que no hi ha Internet i la pantalla mostra l'avís de manca de connexió en lloc dels resultats. En recuperar la connexió, la cerca es reprèn. |
+| G5 | Permís d'ubicació denegat | Denega el permís quan el sistema el demani en prémer «Utiliza mi ubicación». Si ja s'havia concedit, revoca'l als ajustos del sistema per a Expo Go i repeteix l'acció. | Es mostra «Cal donar permís d'ubicació per mostrar les coordenades.»; no apareixen coordenades i la resta de la app continua disponible. |
+
+### Registre d'execució
+
+Data de registre: 2026-11-06. Projecte: Expo SDK 58.0.19, provat amb Expo Go
+en un emulador Android `sdk_gphone16_x86_64` (Android 17, API 37). Servidor
+local iniciat amb `npx expo start --android --host localhost --port 8082` i
+connexió ADB per al port 8082. Resultats observats:
+
+| ID | Resultat en emulador/dispositiu | Evidència |
+|---|---|---|
+| G1 | Passa | Creat `ProvaG` amb descripció `Lloc dAndroid`; la llista mostra una ubicació i el detall conserva nom, categoria i descripció. |
+| G2 | Passa | Després de `adb shell am force-stop host.exp.exponent` i reobrir el projecte, `ProvaG` continua a la llista. |
+| G3 | Passa | En eliminar `ProvaG`, el comptador mostra `0 lugares` i apareix el missatge de llista buida. |
+| G4 | Passa | Desactivats Wi-Fi i dades amb `adb shell svc wifi disable` i `adb shell svc data disable`: l'app mostra `Sin conexión a Internet` i l'avís sense resultats. En reactivar-los, torna a `Conectado · Wi-Fi` i carrega resultats de Barcelona. |
+| G5 | Passa | Revocats els permisos d'ubicació d'Expo Go i seleccionat «Don't allow» al diàleg Android: apareix l'avís de permís denegat i no es mostren coordenades. |
+
+#### Captures de les proves
+
+Les captures s'han pres a l'emulador Android durant l'execució descrita més
+amunt. Obre cada apartat per veure'n la imatge.
+
+<details>
+<summary>G1 — Creació i detall del lloc</summary>
+<img src="./assets/test-evidence/G1-creacio.png" alt="G1: detall del lloc ProvaG creat a Android" width="360">
+</details>
+
+<details>
+<summary>G2 — Lloc conservat després de reiniciar Expo Go</summary>
+<img src="./assets/test-evidence/G2-reinici.png" alt="G2: llista d'Android després de reiniciar Expo Go, amb ProvaG desat" width="360">
+</details>
+
+<details>
+<summary>G3 — Absència de dades</summary>
+<img src="./assets/test-evidence/G3-absencia-de-dades.png" alt="G3: llista buida i comptador zero a Android" width="360">
+</details>
+
+<details>
+<summary>G4 — Error de xarxa</summary>
+<img src="./assets/test-evidence/G4-error-de-xarxa.png" alt="G4: avís de xarxa desconnectada a la pantalla Descobreix d'Android" width="360">
+</details>
+
+<details>
+<summary>G5 — Permís d'ubicació denegat</summary>
+<img src="./assets/test-evidence/G5-permis-denegat.png" alt="G5: avís després de denegar el permís d'ubicació a Android" width="360">
+</details>
+
+Per repetir-les, segueix l'ordre G1 → G2 → G3 → G4 → G5 en un únic
+dispositiu. G3 deixa la llista buida per iniciar una nova ronda. En aquesta
+execució, els permisos d'ubicació s'han restaurat al seu estat inicial després
+de provar la denegació.
+
+### Comprovació complementària al web
+
+El 2026-11-06 s'ha iniciat Expo Web (`npx expo start --web --port 8081`) i
+s'han comprovat aquests fluxos al navegador. No substitueixen una prova
+nativa:
+
+| Cas | Resultat web | Abast i límit |
+|---|---|---|
+| G1 | Passa | Alta de `Prova G`, targeta a la llista i detall amb descripció. |
+| G2 | Passa parcialment | El lloc continua disponible després de recarregar la pàgina; no s'ha tancat/reobert Expo Go. |
+| G3 | Passa | En eliminar el lloc, es mostra l'estat buit i el comptador `0 lugares`. |
+| G4 | Passa parcialment | S'ha avortat la petició a Open-Meteo al navegador i s'han comprovat l'avís d'error i el botó «Reintentar»; no s'ha simulat el mode avió ni NetInfo natiu. |
+| G5 | No executat | El navegador d'aquesta sessió no permet configurar el permís geogràfic (`Browser.grantPermissions` no està disponible); cal repetir-lo en Android/iOS. |
+
+El typecheck (`npx tsc --noEmit`) acaba correctament. `npx expo lint` encara
+falla per un diagnòstic existent a `src/hooks/use-color-scheme.web.ts:11`
+(`react-hooks/set-state-in-effect`); no forma part d'aquest canvi.

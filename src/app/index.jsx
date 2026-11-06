@@ -53,6 +53,7 @@ export default function HomeScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
+        setLocationError("Cal donar permís d'ubicació per mostrar les coordenades.");
         return;
       }
 
