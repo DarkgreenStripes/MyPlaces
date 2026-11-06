@@ -37,7 +37,7 @@ impedir que se guarde con el nombre vacío, informar del error y permitir volver
 a la lista. MyPlaces lo resuelve así:
 
 - **Acceso al formulario:** el botón «Añadir un lugar» de
-  `src/app/index.jsx` abre la ruta `/afegir`.
+  `src/app/index.jsx` abre la ruta interna `/afegir`.
 - **Campos del formulario:** `src/app/afegir.jsx` tiene un `TextInput` para el
   nombre y otro para la descripción. Sus valores se controlan con estado de
   React y `onChangeText`.
@@ -100,7 +100,7 @@ lista actualizada.
 
 La pantalla `src/app/descobreix.jsx` consulta una API pública por HTTPS y
 muestra ciudades según el texto introducido. Se abre desde el botón
-«Descobreix ciutats» de `src/app/index.jsx`; la ruta está configurada en
+«Descubre ciudades» de `src/app/index.jsx`; la ruta interna está configurada en
 `src/app/_layout.jsx`. El botón «Volver al inicio» permite regresar a la lista
 principal.
 
@@ -113,7 +113,7 @@ que no requiere clave. La petición se hace con `fetch()` a
 - `name`: texto de búsqueda. La pantalla empieza con «Barcelona» y permite
   cambiarlo en el campo «Nombre de la ciudad».
 - `count=10`: solicita como máximo diez coincidencias.
-- `language=ca`: pide los nombres en catalán cuando están disponibles.
+- `language=es`: solicita los nombres en español cuando están disponibles.
 - `format=json`: solicita la respuesta en formato JSON.
 
 El botón «Buscar» y la tecla de búsqueda del teclado envían la consulta. Antes
@@ -158,7 +158,7 @@ El usuario controla los permisos de su dispositivo. MyPlaces solo necesita
 acceder a la ubicación cuando la persona lo solicita, así que no la pide al
 abrir la app ni solicita acceso en segundo plano:
 
-- Al pulsar «Utilitza la meva ubicació», `src/app/index.jsx` solicita el
+- Al pulsar «Utiliza mi ubicación», `src/app/index.jsx` solicita el
   permiso de primer plano con `requestForegroundPermissionsAsync()` de
   `expo-location`.
 - La app comprueba que `status` sea `"granted"` antes de acceder a la posición.
@@ -177,7 +177,7 @@ latitud y la longitud con seis decimales:
 const { status } = await Location.requestForegroundPermissionsAsync();
 
 if (status !== "granted") {
-  setLocationError("Cal donar permís d'ubicació per mostrar les coordenades.");
+  setLocationError("Debes conceder permiso de ubicación para mostrar las coordenadas.");
   return;
 }
 
@@ -242,105 +242,106 @@ Instala las dependencias con `npm install` y luego inicia Expo:
 npx expo start
 ```
 
-## Apartat G: proves i documentació reproduïbles
+## Apartado G: pruebas y documentación reproducibles
 
-### Preparar l'entorn
+### Preparar el entorno
 
-Requisits: Node.js, npm i les dependències del projecte. Per provar la ubicació
-cal un dispositiu o emulador Android/iOS amb Expo Go i els serveis d'ubicació
-activats.
+Requisitos: Node.js, npm y las dependencias del proyecto. Para probar la
+ubicación se necesita un dispositivo o emulador Android/iOS con Expo Go y los
+servicios de ubicación activados.
 
 ```bash
 npm install
 npx expo start
 ```
 
-Per a Android, inicia un AVD des d'Android Studio abans d'executar
-`npx expo start --android`. Comprova que apareix a `adb devices -l`. En un
-dispositiu físic, connecta'l a la mateixa xarxa Wi-Fi que l'ordinador, obre
-Expo Go i escaneja el codi QR que mostra Expo. Per a iOS, obre el projecte amb
-Expo Go des del codi QR; cal un iPhone amb Expo Go per comprovar els permisos
-natius d'iOS. Mantén el servidor d'Expo en execució durant la prova.
+En Android, inicia un AVD desde Android Studio antes de ejecutar
+`npx expo start --android`. Comprueba que aparece en `adb devices -l`. Si usas
+un dispositivo físico, conéctalo a la misma red Wi-Fi que el ordenador, abre
+Expo Go y escanea el código QR que muestra Expo. En iOS, abre el proyecto con
+Expo Go desde el código QR; se necesita un iPhone con Expo Go para comprobar
+los permisos nativos de iOS. Mantén el servidor de Expo en ejecución durante
+la prueba.
 
-Abans de començar, elimina els llocs guardats des de la mateixa app (botó
-«Eliminar» de cada targeta) fins que aparegui «No tienes lugares guardados
-todavía». Això prepara un estat inicial buit sense esborrar dades d'altres
-projectes d'Expo Go.
+Antes de empezar, elimina los lugares guardados desde la propia aplicación
+(botón «Eliminar» de cada tarjeta) hasta que aparezca «No tienes lugares
+guardados todavía». Así se prepara un estado inicial vacío sin borrar datos
+de otros proyectos de Expo Go.
 
-### Casos de prova manuals
+### Casos de prueba manuales
 
-| ID | Cas | Passos reproduïbles | Resultat esperat |
+| ID | Caso | Pasos reproducibles | Resultado esperado |
 |---|---|---|---|
-| G1 | Creació | Des de la llista buida, prem «Añadir un lugar», introdueix `ProvaG` i `Lloc dAndroid`, prem «Guardar lugar» i obre la targeta creada. | La llista mostra el lloc; el detall conserva el nom, la categoria «Personalizado» i la descripció. |
-| G2 | Reinici i persistència | Després de G1, tanca completament Expo Go des del selector d'aplicacions i torna a obrir el mateix projecte. | `Prova G` continua a la llista i el seu detall es pot tornar a obrir. No esborris les dades entre els dos passos. |
-| G3 | Absència de dades | A la llista, elimina tots els llocs desats. Torna a la pantalla principal si cal. | Es mostra «No tienes lugares guardados todavía» i el comptador indica `0 lugares`; no apareixen dades d'exemple. |
-| G4 | Error de xarxa | Obre «Descubre ciudades» i activa el mode avió o desactiva Wi-Fi i dades mòbils des dels ajustos del dispositiu. | L'estat de xarxa indica que no hi ha Internet i la pantalla mostra l'avís de manca de connexió en lloc dels resultats. En recuperar la connexió, la cerca es reprèn. |
-| G5 | Permís d'ubicació denegat | Denega el permís quan el sistema el demani en prémer «Utiliza mi ubicación». Si ja s'havia concedit, revoca'l als ajustos del sistema per a Expo Go i repeteix l'acció. | Es mostra «Cal donar permís d'ubicació per mostrar les coordenades.»; no apareixen coordenades i la resta de la app continua disponible. |
+| G1 | Creación | Desde la lista vacía, pulsa «Añadir un lugar», introduce `PruebaG` y `Lugar de Android`, pulsa «Guardar lugar» y abre la tarjeta creada. | La lista muestra el lugar; el detalle conserva el nombre, la categoría «Personalizado» y la descripción. |
+| G2 | Reinicio y persistencia | Después de G1, cierra completamente Expo Go desde el selector de aplicaciones y vuelve a abrir el mismo proyecto. | `PruebaG` sigue en la lista y se puede volver a abrir su detalle. No borres los datos entre ambos pasos. |
+| G3 | Ausencia de datos | En la lista, elimina todos los lugares guardados. Vuelve a la pantalla principal si es necesario. | Aparecen «No tienes lugares guardados todavía» y el contador `0 lugares`; no se muestran datos de ejemplo. |
+| G4 | Error de red | Abre «Descubre ciudades» y activa el modo avión o desactiva Wi-Fi y los datos móviles desde los ajustes del dispositivo. | El estado de red indica que no hay Internet y la pantalla muestra el aviso de desconexión en lugar de los resultados. Al recuperar la conexión, se reanuda la búsqueda. |
+| G5 | Permiso de ubicación denegado | Deniega el permiso cuando el sistema lo solicite al pulsar «Utiliza mi ubicación». Si ya lo habías concedido, revócalo en los ajustes del sistema para Expo Go y repite la acción. | Aparece «Debes conceder permiso de ubicación para mostrar las coordenadas.»; no se muestran coordenadas y el resto de la aplicación sigue disponible. |
 
-### Registre d'execució
+### Registro de ejecución
 
-Data de registre: 2026-11-06. Projecte: Expo SDK 58.0.19, provat amb Expo Go
+Fecha del registro: 2026-11-06. Proyecto: Expo SDK 58.0.19, probado con Expo Go
 en un emulador Android `sdk_gphone16_x86_64` (Android 17, API 37). Servidor
-local iniciat amb `npx expo start --android --host localhost --port 8082` i
-connexió ADB per al port 8082. Resultats observats:
+local iniciado con `npx expo start --android --host localhost --port 8082` y
+conexión ADB para el puerto 8082. Resultados observados:
 
-| ID | Resultat en emulador/dispositiu | Evidència |
+| ID | Resultado en emulador/dispositivo | Evidencia |
 |---|---|---|
-| G1 | Passa | Creat `ProvaG` amb descripció `Lloc dAndroid`; la llista mostra una ubicació i el detall conserva nom, categoria i descripció. |
-| G2 | Passa | Després de `adb shell am force-stop host.exp.exponent` i reobrir el projecte, `ProvaG` continua a la llista. |
-| G3 | Passa | En eliminar `ProvaG`, el comptador mostra `0 lugares` i apareix el missatge de llista buida. |
-| G4 | Passa | Desactivats Wi-Fi i dades amb `adb shell svc wifi disable` i `adb shell svc data disable`: l'app mostra `Sin conexión a Internet` i l'avís sense resultats. En reactivar-los, torna a `Conectado · Wi-Fi` i carrega resultats de Barcelona. |
-| G5 | Passa | Revocats els permisos d'ubicació d'Expo Go i seleccionat «Don't allow» al diàleg Android: apareix l'avís de permís denegat i no es mostren coordenades. |
+| G1 | Aprobado | Se creó `PruebaG` con la descripción `Lugar de Android`; la lista muestra un lugar y el detalle conserva el nombre, la categoría y la descripción. |
+| G2 | Aprobado | Tras ejecutar `adb shell am force-stop host.exp.exponent` y volver a abrir el proyecto, `PruebaG` sigue en la lista. |
+| G3 | Aprobado | Al eliminar `PruebaG`, el contador muestra `0 lugares` y aparece el mensaje de lista vacía. |
+| G4 | Aprobado | Se desactivaron Wi-Fi y los datos con `adb shell svc wifi disable` y `adb shell svc data disable`: la aplicación muestra `Sin conexión a Internet` y el aviso correspondiente. Al reactivarlos, vuelve a `Conectado · Wi-Fi` y carga resultados de Barcelona. |
+| G5 | Aprobado | Se revocaron los permisos de ubicación de Expo Go y se seleccionó «No permitir» en el diálogo de Android: aparece el aviso de permiso denegado y no se muestran coordenadas. |
 
-#### Captures de les proves
+#### Capturas de las pruebas
 
-Les captures s'han pres a l'emulador Android durant l'execució descrita més
-amunt. Obre cada apartat per veure'n la imatge.
+Las capturas se tomaron en el emulador Android durante la ejecución descrita
+arriba. Abre cada sección para ver la imagen.
 
 <details>
-<summary>G1 — Creació i detall del lloc</summary>
-<img src="./assets/test-evidence/G1-creacio.png" alt="G1: detall del lloc ProvaG creat a Android" width="360">
+<summary>G1 — Creación y detalle del lugar</summary>
+<img src="./assets/test-evidence/G1-creacion.png" alt="G1: detalle del lugar PruebaG creado en Android" width="360">
 </details>
 
 <details>
-<summary>G2 — Lloc conservat després de reiniciar Expo Go</summary>
-<img src="./assets/test-evidence/G2-reinici.png" alt="G2: llista d'Android després de reiniciar Expo Go, amb ProvaG desat" width="360">
+<summary>G2 — El lugar se conserva después de reiniciar Expo Go</summary>
+<img src="./assets/test-evidence/G2-reinicio.png" alt="G2: lista de Android después de reiniciar Expo Go, con PruebaG guardado" width="360">
 </details>
 
 <details>
-<summary>G3 — Absència de dades</summary>
-<img src="./assets/test-evidence/G3-absencia-de-dades.png" alt="G3: llista buida i comptador zero a Android" width="360">
+<summary>G3 — Ausencia de datos</summary>
+<img src="./assets/test-evidence/G3-ausencia-de-datos.png" alt="G3: lista vacía y contador a cero en Android" width="360">
 </details>
 
 <details>
-<summary>G4 — Error de xarxa</summary>
-<img src="./assets/test-evidence/G4-error-de-xarxa.png" alt="G4: avís de xarxa desconnectada a la pantalla Descobreix d'Android" width="360">
+<summary>G4 — Error de red</summary>
+<img src="./assets/test-evidence/G4-error-de-red.png" alt="G4: aviso de desconexión en la pantalla Descubrir ciudades de Android" width="360">
 </details>
 
 <details>
-<summary>G5 — Permís d'ubicació denegat</summary>
-<img src="./assets/test-evidence/G5-permis-denegat.png" alt="G5: avís després de denegar el permís d'ubicació a Android" width="360">
+<summary>G5 — Permiso de ubicación denegado</summary>
+<img src="./assets/test-evidence/G5-permiso-denegado.png" alt="G5: aviso después de denegar el permiso de ubicación en Android" width="360">
 </details>
 
-Per repetir-les, segueix l'ordre G1 → G2 → G3 → G4 → G5 en un únic
-dispositiu. G3 deixa la llista buida per iniciar una nova ronda. En aquesta
-execució, els permisos d'ubicació s'han restaurat al seu estat inicial després
-de provar la denegació.
+Para repetir las pruebas, sigue el orden G1 → G2 → G3 → G4 → G5 en un único
+dispositivo. G3 deja la lista vacía para iniciar una nueva ronda. En esta
+ejecución, los permisos de ubicación se restauraron a su estado inicial
+después de probar la denegación.
 
-### Comprovació complementària al web
+### Comprobación complementaria en la web
 
-El 2026-11-06 s'ha iniciat Expo Web (`npx expo start --web --port 8081`) i
-s'han comprovat aquests fluxos al navegador. No substitueixen una prova
-nativa:
+El 2026-11-06 se inició Expo Web (`npx expo start --web --port 8081`) y se
+comprobaron estos flujos en el navegador. No sustituyen una prueba nativa:
 
-| Cas | Resultat web | Abast i límit |
+| Caso | Resultado web | Alcance y limitaciones |
 |---|---|---|
-| G1 | Passa | Alta de `Prova G`, targeta a la llista i detall amb descripció. |
-| G2 | Passa parcialment | El lloc continua disponible després de recarregar la pàgina; no s'ha tancat/reobert Expo Go. |
-| G3 | Passa | En eliminar el lloc, es mostra l'estat buit i el comptador `0 lugares`. |
-| G4 | Passa parcialment | S'ha avortat la petició a Open-Meteo al navegador i s'han comprovat l'avís d'error i el botó «Reintentar»; no s'ha simulat el mode avió ni NetInfo natiu. |
-| G5 | No executat | El navegador d'aquesta sessió no permet configurar el permís geogràfic (`Browser.grantPermissions` no està disponible); cal repetir-lo en Android/iOS. |
+| G1 | Aprobado | Creación de `PruebaG`, tarjeta en la lista y detalle con descripción. |
+| G2 | Aprobado parcialmente | El lugar sigue disponible tras recargar la página; no se cerró ni se volvió a abrir Expo Go. |
+| G3 | Aprobado | Al eliminar el lugar, aparece el estado vacío y el contador `0 lugares`. |
+| G4 | Aprobado parcialmente | Se abortó la petición a Open-Meteo en el navegador y se comprobaron el aviso de error y el botón «Reintentar»; no se simuló el modo avión ni NetInfo nativo. |
+| G5 | No ejecutado | El navegador de esta sesión no permite configurar el permiso de ubicación (`Browser.grantPermissions` no está disponible); hay que repetir la prueba en Android/iOS. |
 
-El typecheck (`npx tsc --noEmit`) acaba correctament. `npx expo lint` encara
-falla per un diagnòstic existent a `src/hooks/use-color-scheme.web.ts:11`
-(`react-hooks/set-state-in-effect`); no forma part d'aquest canvi.
+La comprobación de tipos (`npx tsc --noEmit`) finaliza correctamente.
+`npx expo lint` sigue fallando por un diagnóstico preexistente en
+`src/hooks/use-color-scheme.web.ts:11` (`react-hooks/set-state-in-effect`),
+ajeno a este cambio.

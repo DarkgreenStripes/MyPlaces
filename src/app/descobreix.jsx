@@ -39,7 +39,7 @@ export default function DiscoverScreen() {
 
     async function loadPlaces() {
       try {
-        const url = `${API_URL}?name=${encodeURIComponent(searchTerm)}&count=10&language=ca&format=json`;
+        const url = `${API_URL}?name=${encodeURIComponent(searchTerm)}&count=10&language=es&format=json`;
         const response = await fetch(url, { signal: controller.signal });
 
         if (!response.ok) {
@@ -58,7 +58,7 @@ export default function DiscoverScreen() {
         }
       } catch (requestError) {
         if (active) {
-          console.error("No s'han pogut carregar les ciutats.", requestError);
+          console.error("No se pudieron cargar las ciudades.", requestError);
           setStatus("error");
         }
       }

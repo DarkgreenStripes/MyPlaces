@@ -53,7 +53,7 @@ export default function HomeScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setLocationError("Cal donar permís d'ubicació per mostrar les coordenades.");
+        setLocationError("Debes conceder permiso de ubicación para mostrar las coordenadas.");
         return;
       }
 
@@ -79,7 +79,10 @@ export default function HomeScreen() {
         <Text style={styles.title}>MyPlaces</Text>
         <Text style={styles.subtitle}>Lugares para recordar</Text>
         <View style={styles.countBadge}>
-          <Text style={styles.countText}>{savedLocations.length} lugares</Text>
+          <Text style={styles.countText}>
+            {savedLocations.length}{" "}
+            {savedLocations.length === 1 ? "lugar" : "lugares"}
+          </Text>
         </View>
       </View>
       {loadError ? (
@@ -128,7 +131,7 @@ export default function HomeScreen() {
           </Text>
         </View>
       ) : null}
-      <Text style={styles.sectionTitle}>Tú lista</Text>
+      <Text style={styles.sectionTitle}>Tu lista</Text>
       <Link href="/afegir" asChild>
         <Pressable
           accessibilityRole="button"
