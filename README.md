@@ -268,6 +268,23 @@ servicios de ubicación estén disponibles.
 <img src="./assets/test-evidence/G5-permiso-denegado.png" alt="Aviso después de denegar el permiso de ubicación en Android" width="360">
 </details>
 
+### Si no aparece el cuadro de permiso en el navegador
+
+Cuando la app se ejecuta en Expo Web, el permiso lo controla el navegador.
+Si se denegó anteriormente, el navegador puede no volver a mostrar el cuadro
+automáticamente. Para habilitarlo:
+
+1. Pulsa el icono que aparece a la izquierda de la dirección `localhost:8081`.
+2. En el panel del sitio, activa **Ubicación**.
+3. Si el permiso sigue bloqueado, pulsa **Restablecer permiso** en ese panel.
+4. Vuelve a la app y pulsa **Utiliza mi ubicación**. Cuando el navegador lo
+   solicite, permite el acceso.
+
+<details>
+<summary>Activar o restablecer el permiso de ubicación para localhost</summary>
+<img src="./assets/images/Tienes%20que%20habilitar%20esto.png" alt="Panel del navegador para habilitar o restablecer el permiso de ubicación de localhost" width="560">
+</details>
+
 ## Apartado F: conectividad
 
 ### Estado de conexión con NetInfo
