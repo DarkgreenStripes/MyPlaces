@@ -1,71 +1,67 @@
 import { Accelerometer } from "expo-sensors";
 import { Link } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function AccelerometerScreen() {
-  const [reading, setReading] = useState(null);
-  const [isReading, setIsReading] = useState(false);
-  const [isStarting, setIsStarting] = useState(false);
+  const [reading, setReading] = useState({ x: 0, y: 0, z: 0 });
+  const [shouldListen, setShouldListen] = useState(Platform.OS !== "web");
   const [error, setError] = useState("");
-  const subscription = useRef(null);
-  const isMounted = useRef(true);
 
   useEffect(() => {
-    isMounted.current = true;
+    if (!shouldListen) return;
+
+    let active = true;
+    let subscription;
+
+    async function listenToAccelerometer() {
+      try {
+        const available = await Accelerometer.isAvailableAsync();
+        if (!active) return;
+
+        if (!available) {
+          setError(
+            Platform.OS === "web"
+              ? "Este navegador no ofrece un acelerómetro. Prueba desde un móvil físico; en web móvil se necesita HTTPS."
+              : "El acelerómetro no está disponible en este dispositivo. Prueba en un móvil físico, no en un emulador.",
+          );
+          return;
+        }
+
+        Accelerometer.setUpdateInterval(250);
+        subscription = Accelerometer.addListener(setReading);
+      } catch (sensorError) {
+        console.error("No se pudo iniciar el acelerómetro.", sensorError);
+        if (active) {
+          setError("No se pudieron obtener lecturas del acelerómetro.");
+        }
+      }
+    }
+
+    listenToAccelerometer();
+
     return () => {
-      isMounted.current = false;
-      subscription.current?.remove();
+      active = false;
+      subscription?.remove();
     };
-  }, []);
+  }, [shouldListen]);
 
-  async function startReading() {
-    setIsStarting(true);
-    setError("");
-
+  async function requestWebPermission() {
     try {
       const permission = await Accelerometer.requestPermissionsAsync();
       if (!permission.granted) {
         setError(
-          Platform.OS === "web"
-            ? "El navegador ha bloqueado el acceso al movimiento. Permítelo en los ajustes del sitio y recarga la página. En iPhone, usa Safari y activa «Movimiento y orientación»."
-            : Platform.OS === "ios"
-              ? "Permiso de movimiento denegado. Actívalo en Ajustes > Privacidad y seguridad > Movimiento y forma física."
-              : "No se pudo acceder al sensor de movimiento. Comprueba los permisos y ajustes del dispositivo.",
+          "El navegador no concedió permiso de movimiento. Usa un móvil compatible y permite el acceso cuando el navegador lo solicite.",
         );
         return;
       }
 
-      const available = await Accelerometer.isAvailableAsync();
-      if (!available) {
-        setError(
-          Platform.OS === "web"
-            ? "Este navegador no ofrece un acelerómetro. En un ordenador no suele haber nada que habilitar; prueba desde un móvil físico. En iPhone, usa Safari con una conexión segura (HTTPS)."
-            : "El acelerómetro no está disponible en este dispositivo. Prueba en un móvil físico, no en un emulador.",
-        );
-        return;
-      }
-
-      if (!isMounted.current) return;
-
-      Accelerometer.setUpdateInterval(250);
-      subscription.current = Accelerometer.addListener(setReading);
-      setIsReading(true);
-    } catch (requestError) {
-      console.error("No se pudo iniciar el acelerómetro.", requestError);
-      if (isMounted.current) {
-        setError("No se pudieron obtener lecturas del acelerómetro.");
-      }
-    } finally {
-      if (isMounted.current) setIsStarting(false);
+      setError("");
+      setShouldListen(true);
+    } catch (permissionError) {
+      console.error("No se pudo solicitar permiso de movimiento.", permissionError);
+      setError("No se pudo solicitar permiso de movimiento en este navegador.");
     }
-  }
-
-  function stopReading() {
-    subscription.current?.remove();
-    subscription.current = null;
-    setIsReading(false);
-    setReading(null);
   }
 
   return (
@@ -78,36 +74,30 @@ export default function AccelerometerScreen() {
 
       <Text style={styles.title}>Acelerómetro</Text>
       <Text style={styles.description}>
-        Inicia las lecturas y mueve el dispositivo para observar la aceleración
-        en los ejes X, Y y Z. Los valores se expresan en g.
+        Mueve el dispositivo para observar la aceleración en los ejes X, Y y Z.
+        Los valores se expresan en g.
       </Text>
 
       <View accessibilityLiveRegion="polite" style={styles.readingCard}>
         {["x", "y", "z"].map((axis) => (
           <Text key={axis} style={styles.reading}>
-            {axis.toUpperCase()}: {reading ? reading[axis].toFixed(3) : "—"} g
+            {axis.toUpperCase()}: {reading[axis].toFixed(2)} g
           </Text>
         ))}
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        disabled={isStarting}
-        onPress={isReading ? stopReading : startReading}
-        style={({ pressed }) => [
-          styles.actionButton,
-          pressed && styles.buttonPressed,
-          isStarting && styles.buttonDisabled,
-        ]}
-      >
-        <Text style={styles.actionText}>
-          {isStarting
-            ? "Iniciando..."
-            : isReading
-              ? "Detener lecturas"
-              : "Iniciar lecturas"}
-        </Text>
-      </Pressable>
+      {Platform.OS === "web" && !shouldListen ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={requestWebPermission}
+          style={({ pressed }) => [
+            styles.actionButton,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.actionText}>Permitir movimiento e iniciar</Text>
+        </Pressable>
+      ) : null}
 
       {error ? (
         <Text accessibilityLiveRegion="polite" style={styles.error}>
@@ -167,9 +157,6 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     opacity: 0.8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
   },
   actionText: {
     color: "#FFFFFF",

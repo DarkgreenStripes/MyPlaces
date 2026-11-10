@@ -425,13 +425,16 @@ después de probar la denegación.
 La pantalla `src/app/accelerometre.jsx`, accesible desde «Probar acelerómetro»
 en el inicio, muestra las lecturas de los ejes X, Y y Z del dispositivo:
 
-- Al pulsar «Iniciar lecturas», solicita el permiso de movimiento y comprueba
-  que el acelerómetro esté disponible.
-- `Accelerometer.addListener()` recibe nuevas mediciones cada 250 ms. Los
-  valores se expresan en `g` (1 g equivale aproximadamente a 9,81 m/s²).
-- «Detener lecturas» cancela la suscripción. También se elimina al salir de la
-  pantalla para no seguir escuchando el sensor innecesariamente.
-- Si se deniega el permiso o el dispositivo no tiene un acelerómetro
+- En Android e iOS, la pantalla comprueba la disponibilidad al abrirse, fija el
+  intervalo de actualización a 250 ms y empieza a escuchar automáticamente.
+  `Accelerometer.addListener()` recibe las lecturas X, Y y Z, expresadas en `g`
+  (1 g equivale aproximadamente a 9,81 m/s²).
+- En web, el botón «Permitir movimiento e iniciar» solicita el permiso dentro
+  de una acción del usuario, como requieren algunos navegadores, y después
+  comprueba la disponibilidad del sensor.
+- Al salir de la pantalla se llama a `subscription.remove()` para dejar de
+  escuchar el sensor. No se mantiene una suscripción activa en segundo plano.
+- Si el navegador deniega el permiso o el dispositivo no tiene un acelerómetro
   disponible, la pantalla muestra un mensaje en vez de iniciar las lecturas.
 
 `expo-sensors` ya forma parte de las dependencias del proyecto. El plugin
@@ -440,10 +443,10 @@ necesario para iOS. Tras cambiar esta configuración nativa, hay que reconstruir
 la aplicación; en Expo Go, la disponibilidad y los permisos dependen del
 dispositivo.
 
-Para probar la función, abre «Probar acelerómetro», inicia las lecturas y mueve
-un dispositivo con sensor. En navegador de escritorio el sensor puede no estar
-disponible; en web móvil puede requerirse permiso del navegador y un contexto
-seguro (HTTPS).
+Para probar la función, abre «Probar acelerómetro» y mueve un dispositivo con
+sensor. En web, pulsa «Permitir movimiento e iniciar» para pedir el permiso
+dentro de una acción del usuario. En navegador de escritorio el sensor puede
+no estar disponible; en web móvil puede requerirse un contexto seguro (HTTPS).
 
 Si el navegador no muestra una solicitud o indica que el acceso está bloqueado,
 permite el movimiento/orientación en los ajustes de permisos del sitio y
