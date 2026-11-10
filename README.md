@@ -12,6 +12,7 @@ src/
 │   ├── index.jsx
 │   ├── afegir.jsx
 │   ├── descobreix.jsx
+│   ├── accelerometre.jsx
 │   ├── data/
 │   │   └── id.js
 │   └── detall/
@@ -418,3 +419,35 @@ después de probar la denegación.
 - La comprobación web es complementaria y no sustituye la prueba nativa. En
   web, G2 y G4 solo se comprobaron parcialmente y G5 no se pudo ejecutar.
 - En esta ejecución no se generó un APK ni se probó con un sensor físico.
+
+## Ampliación voluntaria: lecturas del acelerómetro
+
+La pantalla `src/app/accelerometre.jsx`, accesible desde «Probar acelerómetro»
+en el inicio, muestra las lecturas de los ejes X, Y y Z del dispositivo:
+
+- Al pulsar «Iniciar lecturas», solicita el permiso de movimiento y comprueba
+  que el acelerómetro esté disponible.
+- `Accelerometer.addListener()` recibe nuevas mediciones cada 250 ms. Los
+  valores se expresan en `g` (1 g equivale aproximadamente a 9,81 m/s²).
+- «Detener lecturas» cancela la suscripción. También se elimina al salir de la
+  pantalla para no seguir escuchando el sensor innecesariamente.
+- Si se deniega el permiso o el dispositivo no tiene un acelerómetro
+  disponible, la pantalla muestra un mensaje en vez de iniciar las lecturas.
+
+`expo-sensors` ya forma parte de las dependencias del proyecto. El plugin
+configurado en `app.json` proporciona el texto de permiso de movimiento
+necesario para iOS. Tras cambiar esta configuración nativa, hay que reconstruir
+la aplicación; en Expo Go, la disponibilidad y los permisos dependen del
+dispositivo.
+
+Para probar la función, abre «Probar acelerómetro», inicia las lecturas y mueve
+un dispositivo con sensor. En navegador de escritorio el sensor puede no estar
+disponible; en web móvil puede requerirse permiso del navegador y un contexto
+seguro (HTTPS).
+
+Si el navegador no muestra una solicitud o indica que el acceso está bloqueado,
+permite el movimiento/orientación en los ajustes de permisos del sitio y
+recarga la página. Los navegadores no siempre vuelven a mostrar el diálogo
+después de haber denegado el permiso. En iPhone, la API web de movimiento suele
+requerir Safari; el acelerómetro nativo se debe probar con la app en un
+dispositivo físico.

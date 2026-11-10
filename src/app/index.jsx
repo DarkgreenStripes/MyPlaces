@@ -96,6 +96,11 @@ export default function HomeScreen() {
           <Text style={styles.discoverButtonText}>Descubre ciudades →</Text>
         </Pressable>
       </Link>
+      <Link href="/accelerometre" asChild>
+        <Pressable accessibilityRole="button" style={styles.sensorButton}>
+          <Text style={styles.sensorButtonText}>Probar acelerómetro →</Text>
+        </Pressable>
+      </Link>
       <Text style={styles.locationExplanation}>
         Solo accederemos a tu ubicación cuando lo solicites para mostrar las
         coordenadas. No se utiliza en segundo plano.
@@ -249,6 +254,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#AA151B",
   },
   discoverButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  sensorButton: {
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginBottom: 14,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: "#6F1115",
+  },
+  sensorButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",

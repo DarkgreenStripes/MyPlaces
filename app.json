@@ -32,6 +32,12 @@
         }
       ],
       [
+        "expo-sensors",
+        {
+          "motionPermission": "MyPlaces necesita acceder al sensor de movimiento para mostrar lecturas del acelerómetro."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
