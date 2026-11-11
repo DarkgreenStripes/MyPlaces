@@ -4,12 +4,18 @@ import { useEffect, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function AccelerometerScreen() {
-  const [reading, setReading] = useState({ x: 0, y: 0, z: 0 });
-  const [shouldListen, setShouldListen] = useState(Platform.OS !== "web");
-  const [error, setError] = useState("");
+  const [accelerometerData, setAccelerometerData] = useState({
+    x: 0,
+    y: 0,
+    z: 0,
+  });
+  const [isListening, setIsListening] = useState(Platform.OS !== "web");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    if (!shouldListen) return;
+    if (!isListening) {
+      return;
+    }
 
     let active = true;
     let subscription;
@@ -17,10 +23,12 @@ export default function AccelerometerScreen() {
     async function listenToAccelerometer() {
       try {
         const available = await Accelerometer.isAvailableAsync();
-        if (!active) return;
+        if (!active) {
+          return;
+        }
 
         if (!available) {
-          setError(
+          setErrorMessage(
             Platform.OS === "web"
               ? "Este navegador no ofrece un acelerómetro. Prueba desde un móvil físico; en web móvil se necesita HTTPS."
               : "El acelerómetro no está disponible en este dispositivo. Prueba en un móvil físico, no en un emulador.",
@@ -29,11 +37,11 @@ export default function AccelerometerScreen() {
         }
 
         Accelerometer.setUpdateInterval(250);
-        subscription = Accelerometer.addListener(setReading);
+        subscription = Accelerometer.addListener(setAccelerometerData);
       } catch (sensorError) {
         console.error("No se pudo iniciar el acelerómetro.", sensorError);
         if (active) {
-          setError("No se pudieron obtener lecturas del acelerómetro.");
+          setErrorMessage("No se pudieron obtener lecturas del acelerómetro.");
         }
       }
     }
@@ -44,23 +52,23 @@ export default function AccelerometerScreen() {
       active = false;
       subscription?.remove();
     };
-  }, [shouldListen]);
+  }, [isListening]);
 
   async function requestWebPermission() {
     try {
       const permission = await Accelerometer.requestPermissionsAsync();
       if (!permission.granted) {
-        setError(
+        setErrorMessage(
           "El navegador no concedió permiso de movimiento. Usa un móvil compatible y permite el acceso cuando el navegador lo solicite.",
         );
         return;
       }
 
-      setError("");
-      setShouldListen(true);
+      setErrorMessage("");
+      setIsListening(true);
     } catch (permissionError) {
       console.error("No se pudo solicitar permiso de movimiento.", permissionError);
-      setError("No se pudo solicitar permiso de movimiento en este navegador.");
+      setErrorMessage("No se pudo solicitar permiso de movimiento en este navegador.");
     }
   }
 
@@ -79,14 +87,18 @@ export default function AccelerometerScreen() {
       </Text>
 
       <View accessibilityLiveRegion="polite" style={styles.readingCard}>
-        {["x", "y", "z"].map((axis) => (
-          <Text key={axis} style={styles.reading}>
-            {axis.toUpperCase()}: {reading[axis].toFixed(2)} g
-          </Text>
-        ))}
+        <Text style={styles.reading}>
+          X: {accelerometerData.x.toFixed(2)} g
+        </Text>
+        <Text style={styles.reading}>
+          Y: {accelerometerData.y.toFixed(2)} g
+        </Text>
+        <Text style={styles.reading}>
+          Z: {accelerometerData.z.toFixed(2)} g
+        </Text>
       </View>
 
-      {Platform.OS === "web" && !shouldListen ? (
+      {Platform.OS === "web" && !isListening ? (
         <Pressable
           accessibilityRole="button"
           onPress={requestWebPermission}
@@ -99,9 +111,9 @@ export default function AccelerometerScreen() {
         </Pressable>
       ) : null}
 
-      {error ? (
+      {errorMessage ? (
         <Text accessibilityLiveRegion="polite" style={styles.error}>
-          {error}
+          {errorMessage}
         </Text>
       ) : null}
     </View>

@@ -11,34 +11,34 @@ import {
 } from "react-native";
 
 export default function AddLocationScreen() {
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [locationName, setLocationName] = useState("");
+  const [locationDescription, setLocationDescription] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const guardarLocalidad = async () => {
-    const nombreNuevo = nombre.trim();
+  async function handleSaveLocation() {
+    const trimmedName = locationName.trim();
 
-    if (!nombreNuevo) {
-      setError("El nombre del lugar es obligatorio.");
+    if (!trimmedName) {
+      setErrorMessage("El nombre del lugar es obligatorio.");
       return;
     }
 
-    setSaving(true);
+    setIsSaving(true);
     try {
       await addLocation({
-        nombre: nombreNuevo,
+        nombre: trimmedName,
         categoria: "Personalizado",
-        descripcion: descripcion.trim(),
+        descripcion: locationDescription.trim(),
       });
       router.replace("/");
     } catch (saveError) {
       console.error("No se pudo guardar el lugar.", saveError);
-      setError("No se pudo guardar el lugar. Inténtalo de nuevo.");
+      setErrorMessage("No se pudo guardar el lugar. Inténtalo de nuevo.");
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
-  };
+  }
 
   return (
     <ScrollView
@@ -52,27 +52,29 @@ export default function AddLocationScreen() {
         <Text style={styles.label}>Nombre</Text>
         <TextInput
           accessibilityLabel="Nombre del lugar"
-          value={nombre}
+          value={locationName}
           onChangeText={(text) => {
-            setNombre(text);
-            if (error) setError("");
+            setLocationName(text);
+            if (errorMessage) {
+              setErrorMessage("");
+            }
           }}
           placeholder="Nombre del lugar"
           placeholderTextColor="#8B8178"
           returnKeyType="next"
           style={styles.input}
         />
-        {error ? (
+        {errorMessage ? (
           <Text accessibilityLiveRegion="polite" style={styles.error}>
-            {error}
+            {errorMessage}
           </Text>
         ) : null}
 
         <Text style={styles.label}>Descripción</Text>
         <TextInput
           accessibilityLabel="Descripción del lugar"
-          value={descripcion}
-          onChangeText={setDescripcion}
+          value={locationDescription}
+          onChangeText={setLocationDescription}
           placeholder="¿Qué te gustaría recordar?"
           placeholderTextColor="#8B8178"
           multiline
@@ -82,15 +84,15 @@ export default function AddLocationScreen() {
 
         <Pressable
           accessibilityRole="button"
-          onPress={guardarLocalidad}
-          disabled={saving}
+          onPress={handleSaveLocation}
+          disabled={isSaving}
           style={({ pressed }) => [
             styles.saveButton,
-            (pressed || saving) && styles.buttonPressed,
+            (pressed || isSaving) && styles.buttonPressed,
           ]}
         >
           <Text style={styles.saveButtonText}>
-            {saving ? "Guardando..." : "Guardar lugar"}
+            {isSaving ? "Guardando..." : "Guardar lugar"}
           </Text>
         </Pressable>
 

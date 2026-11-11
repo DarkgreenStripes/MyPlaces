@@ -46,15 +46,15 @@ las tarjetas se dibujan con un componente reutilizable:
 - **Identificador:** cada lugar guardado tiene un `id` único. Ese mismo
   identificador se envía al abrir el detalle.
 - **Componente reutilizable:** `src/components/location-cards.jsx` recibe un
-  lugar y dibuja su tarjeta. La pantalla principal reutiliza el componente para
-  cada elemento de la lista.
+  lugar y dibuja su tarjeta como `LocationCard`. La pantalla principal
+  reutiliza el componente para cada elemento de la lista.
 - **Navegación:** al pulsar una tarjeta, Expo Router abre
-  `/detall/location?id=<id>`. La configuración de pantallas está en
+  `/detall/location-detail?id=<id>`. La configuración de pantallas está en
   `src/app/_layout.jsx`.
 - **Detalle:** `src/app/detall/location-detail.jsx` lee el parámetro `id`,
   busca el lugar en la lista guardada y muestra su nombre, categoría y
-  descripción. Si el identificador no existe, informa del problema y permite
-  volver a la lista.
+  descripción. La carga usa `async`/`await` y gestiona los errores. Si el
+  identificador no existe, informa del problema y permite volver a la lista.
 
 ### Recorrido de los datos
 
@@ -82,16 +82,16 @@ lugar.
 - **Acceso al formulario:** el botón «Añadir un lugar» de
   `src/app/index.jsx` abre la ruta interna `/afegir`.
 - **Campos del formulario:** `src/app/afegir.jsx` tiene un `TextInput` para el
-  nombre y otro para la descripción. Sus valores se controlan con estado de
-  React y `onChangeText`.
+  nombre y otro para la descripción. Sus valores se controlan con los estados
+  `locationName` y `locationDescription`, y se actualizan con `onChangeText`.
 - **Validación:** antes de guardar se aplica `trim()` al nombre. Si queda
   vacío, se muestra un mensaje de error. Al escribir de nuevo, el mensaje
   desaparece.
 - **Visualización del error:** en `afegir.jsx`, la expresión condicional
-  `{error ? (...) : null}` muestra el componente de texto solo cuando `error`
-  contiene un mensaje; si está vacío, no se renderiza nada. El atributo
-  `accessibilityLiveRegion="polite"` hace que los lectores de pantalla anuncien
-  el mensaje cuando aparece, sin interrumpir lo que estaban leyendo.
+  `{errorMessage ? (...) : null}` muestra el componente de texto solo cuando
+  `errorMessage` contiene un mensaje; si está vacío, no se renderiza nada. El
+  atributo `accessibilityLiveRegion="polite"` hace que los lectores de pantalla
+  anuncien el mensaje cuando aparece, sin interrumpir lo que estaban leyendo.
 - **Guardar:** si el nombre es válido, se guardan el nombre y la descripción
   recortados mediante `addLocation()` en `src/components/location-storage.jsx`.
   La categoría de los lugares añadidos es «Personalizado». Una vez guardado,
@@ -185,7 +185,8 @@ La respuesta JSON contiene `results`. Si es una lista, sus elementos se
 muestran en un `FlatList`, que representa cada ciudad con su nombre, región y
 país. El identificador de Open-Meteo se usa como clave de cada fila.
 
-La pantalla informa del estado de la búsqueda:
+La pantalla informa del estado de la búsqueda. El contenido de cada estado se
+asigna a `searchContent` mediante condiciones explícitas:
 
 - **Carga:** mientras espera la respuesta, muestra un indicador animado y el
   texto «Cargando...».
@@ -247,13 +248,11 @@ if (status !== "granted") {
   return;
 }
 
-const pos = await Location.getCurrentPositionAsync({
-  accuracy: Location.Accuracy.Balanced,
-});
+const position = await Location.getCurrentPositionAsync({});
 
 setCoordinates({
-  latitude: pos.coords.latitude,
-  longitude: pos.coords.longitude,
+  latitude: position.coords.latitude,
+  longitude: position.coords.longitude,
 });
 ```
 

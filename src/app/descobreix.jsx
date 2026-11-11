@@ -91,6 +91,64 @@ export default function DiscoverScreen() {
       ? "Sin conexión a Internet"
       : "Conectado";
 
+  let searchContent = null;
+
+  if (isCheckingConnection) {
+    searchContent = (
+      <View style={styles.status}>
+        <ActivityIndicator color="#AA151B" />
+        <Text>Comprobando conexión...</Text>
+      </View>
+    );
+  } else if (isOffline) {
+    searchContent = (
+      <Text style={styles.statusText}>
+        No hay conexión a Internet. La búsqueda se reanudará al recuperar la conexión.
+      </Text>
+    );
+  } else if (status === "loading") {
+    searchContent = (
+      <View style={styles.status}>
+        <ActivityIndicator color="#AA151B" />
+        <Text>Cargando...</Text>
+      </View>
+    );
+  } else if (status === "error") {
+    searchContent = (
+      <View style={styles.status}>
+        <Text style={styles.statusText}>
+          No se han podido cargar las ciudades.
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleRetry}
+          style={styles.retryButton}
+        >
+          <Text style={styles.retryButtonText}>Reintentar</Text>
+        </Pressable>
+      </View>
+    );
+  } else if (places.length === 0) {
+    searchContent = (
+      <Text style={styles.statusText}>No se han encontrado ciudades.</Text>
+    );
+  } else if (status === "success") {
+    searchContent = (
+      <FlatList
+        data={places}
+        keyExtractor={(place) => String(place.id)}
+        renderItem={({ item }) => (
+          <View style={styles.place}>
+            <Text style={styles.placeName}>{item.name}</Text>
+            <Text>
+              {[item.admin1, item.country].filter(Boolean).join(", ")}
+            </Text>
+          </View>
+        )}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Link href="/" asChild>
@@ -134,49 +192,7 @@ export default function DiscoverScreen() {
         <Text style={styles.searchButtonText}>Buscar</Text>
       </Pressable>
 
-      {isCheckingConnection ? (
-        <View style={styles.status}>
-          <ActivityIndicator color="#AA151B" />
-          <Text>Comprobando conexión...</Text>
-        </View>
-      ) : isOffline ? (
-        <Text style={styles.statusText}>
-          No hay conexión a Internet. La búsqueda se reanudará al recuperar la conexión.
-        </Text>
-      ) : status === "loading" ? (
-        <View style={styles.status}>
-          <ActivityIndicator color="#AA151B" />
-          <Text>Cargando...</Text>
-        </View>
-      ) : status === "error" ? (
-        <View style={styles.status}>
-          <Text style={styles.statusText}>
-            No se han podido cargar las ciudades.
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={handleRetry}
-            style={styles.retryButton}
-          >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
-          </Pressable>
-        </View>
-      ) : places.length === 0 ? (
-        <Text style={styles.statusText}>No se han encontrado ciudades.</Text>
-      ) : status === "success" ? (
-        <FlatList
-          data={places}
-          keyExtractor={(place) => String(place.id)}
-          renderItem={({ item }) => (
-            <View style={styles.place}>
-              <Text style={styles.placeName}>{item.name}</Text>
-              <Text>
-                {[item.admin1, item.country].filter(Boolean).join(", ")}
-              </Text>
-            </View>
-          )}
-        />
-      ) : null}
+      {searchContent}
     </View>
   );
 }

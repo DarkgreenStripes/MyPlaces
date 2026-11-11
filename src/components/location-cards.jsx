@@ -1,7 +1,7 @@
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export default function Card({ location, onDelete, isDeleting }) {
+export default function LocationCard({ location, onDelete, isDeleting }) {
   return (
     <View style={styles.card}>
       <Link

@@ -1,4 +1,4 @@
-import Card from "@/components/location-cards";
+import LocationCard from "@/components/location-cards";
 import { getLocationList, removeLocation } from "@/components/location-storage";
 import * as Location from "expo-location";
 import { Link } from "expo-router";
@@ -13,6 +13,7 @@ export default function HomeScreen() {
   const [coordinates, setCoordinates] = useState(null);
   const [locationError, setLocationError] = useState("");
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const savedLocationCount = savedLocations.length;
 
   useEffect(() => {
     async function loadLocations() {
@@ -57,10 +58,10 @@ export default function HomeScreen() {
         return;
       }
 
-      const pos = await Location.getCurrentPositionAsync({});
+      const position = await Location.getCurrentPositionAsync({});
       setCoordinates({
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
       });
     } catch (error) {
       console.error("No se pudo obtener la ubicación.", error);
@@ -80,8 +81,8 @@ export default function HomeScreen() {
         <Text style={styles.subtitle}>Lugares para recordar</Text>
         <View style={styles.countBadge}>
           <Text style={styles.countText}>
-            {savedLocations.length}{" "}
-            {savedLocations.length === 1 ? "lugar" : "lugares"}
+            {savedLocationCount}{" "}
+            {savedLocationCount === 1 ? "lugar" : "lugares"}
           </Text>
         </View>
       </View>
@@ -152,7 +153,7 @@ export default function HomeScreen() {
         data={savedLocations}
         keyExtractor={(location) => location.id}
         renderItem={({ item }) => (
-          <Card
+          <LocationCard
             location={item}
             onDelete={handleDeleteLocation}
             isDeleting={isDeleting}

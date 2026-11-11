@@ -13,25 +13,28 @@ export default function LocationDetail() {
   useEffect(() => {
     let isActive = true;
 
-    getLocationList()
-      .then((locationList) => {
+    async function loadLocation() {
+      try {
+        const locationList = await getLocationList();
+        const foundLocation =
+          locationList.find((item) => item.id === locationId) ?? null;
+
         if (isActive) {
-          setLocation(
-            locationList.find((item) => item.id === locationId) ?? null,
-          );
+          setLocation(foundLocation);
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error("No se pudo cargar el lugar.", error);
         if (isActive) {
           setLoadError("No se pudo cargar el lugar.");
         }
-      })
-      .finally(() => {
+      } finally {
         if (isActive) {
           setLoading(false);
         }
-      });
+      }
+    }
+
+    loadLocation();
 
     return () => {
       isActive = false;
